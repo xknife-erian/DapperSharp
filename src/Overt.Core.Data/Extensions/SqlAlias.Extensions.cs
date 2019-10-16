@@ -1,4 +1,5 @@
 ﻿using Overt.Core.Data.Expressions;
+using System.Collections.Concurrent;
 
 namespace Overt.Core.Data
 {
@@ -7,6 +8,8 @@ namespace Overt.Core.Data
     /// </summary>
     public static class SqlAliasExtensions
     {
+        private static ConcurrentDictionary<string, string> ColumnMap = new ConcurrentDictionary<string, string>();
+
         /// <summary>
         /// 参数前缀
         /// </summary>
@@ -42,28 +45,28 @@ namespace Overt.Core.Data
         /// <summary>
         /// 获取添加左右标记 防止有关键字作为字段名/表名
         /// </summary>
-        /// <param name="columnName"></param>
+        /// <param name="columnOrTableName"></param>
         /// <param name="dbType"></param>
         /// <returns></returns>
-        public static string ParamSql(this string columnName, DatabaseType? dbType)
+        public static string ParamSql(this string columnOrTableName, DatabaseType? dbType)
         {
             switch (dbType)
             {
                 case DatabaseType.SqlServer:
                 case DatabaseType.GteSqlServer2012:
-                    if (columnName.StartsWith("["))
-                        return columnName;
-                    return $"[{columnName}]";
+                    if (columnOrTableName.StartsWith("["))
+                        return columnOrTableName;
+                    return $"[{columnOrTableName}]";
                 case DatabaseType.MySql:
-                    if (columnName.StartsWith("`"))
-                        return columnName;
-                    return $"`{columnName}`";
+                    if (columnOrTableName.StartsWith("`"))
+                        return columnOrTableName;
+                    return $"`{columnOrTableName}`";
                 case DatabaseType.SQLite:
-                    if (columnName.StartsWith("`"))
-                        return columnName;
-                    return $"`{columnName}`";
+                    if (columnOrTableName.StartsWith("`"))
+                        return columnOrTableName;
+                    return $"`{columnOrTableName}`";
                 default:
-                    return columnName;
+                    return columnOrTableName;
             }
         }
 

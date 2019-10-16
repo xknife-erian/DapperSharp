@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Overt.Core.Data.Expressions
@@ -10,13 +11,6 @@ namespace Overt.Core.Data.Expressions
     /// </summary>
 	public class SqlGenerate
     {
-        #region Private Property
-        private static readonly List<string> S_listEnglishWords = new List<string> { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", };
-
-        private Dictionary<string, string> _dicTableName = new Dictionary<string, string>();
-        private Queue<string> _queueEnglishWords = new Queue<string>(S_listEnglishWords);
-        #endregion
-
         #region Public Property
         /// <summary>
         /// 字段
@@ -30,24 +24,12 @@ namespace Overt.Core.Data.Expressions
         /// <summary>
         /// 字段字符串
         /// </summary>
-        public string SelectFieldsStr
-        {
-            get
-            {
-                return string.Join(", ", this.SelectFields);
-            }
-        }
+        public string SelectFieldsStr => string.Join(", ", this.SelectFields);
 
         /// <summary>
         /// sql长度
         /// </summary>
-        public int Length
-        {
-            get
-            {
-                return Sql.Length;
-            }
-        }
+        public int Length => Sql.Length;
 
         /// <summary>
         /// 脚本
@@ -58,6 +40,11 @@ namespace Overt.Core.Data.Expressions
         /// 数据库类型
         /// </summary>
         public DatabaseType DatabaseType { get; set; }
+
+        /// <summary>
+        /// 数据库实体类型
+        /// </summary>
+        public Type EntityType { get; set; }
 
         /// <summary>
         /// 数据库参数
@@ -77,7 +64,6 @@ namespace Overt.Core.Data.Expressions
             }
         }
         #endregion
-
 
         #region Constructor 
         /// <summary>
@@ -112,8 +98,6 @@ namespace Overt.Core.Data.Expressions
             SelectFields.Clear();
             Sql.Clear();
             DbParams.Clear();
-            _dicTableName.Clear();
-            _queueEnglishWords = new Queue<string>(S_listEnglishWords);
         }
 
         /// <summary>
