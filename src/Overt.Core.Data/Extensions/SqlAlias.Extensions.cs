@@ -1,5 +1,8 @@
 ﻿using Overt.Core.Data.Expressions;
+using System;
 using System.Collections.Concurrent;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace Overt.Core.Data
 {
@@ -34,39 +37,76 @@ namespace Overt.Core.Data
         /// <summary>
         /// 获取添加左右标记 防止有关键字作为字段名/表名
         /// </summary>
-        /// <param name="columnName"></param>
+        /// <param name="column"></param>
         /// <param name="sqlGenerate"></param>
         /// <returns></returns>
-        public static string ParamSql(this string columnName, SqlGenerate sqlGenerate)
+        public static string ParamSql(this string column, SqlGenerate sqlGenerate)
         {
-            return columnName.ParamSql(sqlGenerate?.DatabaseType);
+            return column.ParamSql(sqlGenerate?.DatabaseType, sqlGenerate?.EntityType);
         }
 
         /// <summary>
         /// 获取添加左右标记 防止有关键字作为字段名/表名
         /// </summary>
-        /// <param name="columnOrTableName"></param>
+        /// <param name="column"></param>
         /// <param name="dbType"></param>
         /// <returns></returns>
-        public static string ParamSql(this string columnOrTableName, DatabaseType? dbType)
+        public static string ParamSql<TEntity>(this string column, DatabaseType? dbType)
+        {
+            return column.ParamSql(dbType, typeof(TEntity));
+        }
+
+        /// <summary>
+        /// 获取添加左右标记 防止有关键字作为字段名/表名
+        /// </summary>
+        /// <param name="column"></param>
+        /// <param name="dbType"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static string ParamSql(this string column, DatabaseType? dbType, Type type)
+        {
+            var key = $"{type?.FullName}_{column}";
+            column = ColumnMap.GetOrAdd(key, k =>
+            {
+                var pis = type.GetProperties();
+                var pi = pis.FirstOrDefault(oo => oo.Name == column);
+                if (pi == null)
+                    return column;
+
+                var attribute = pi.GetAttribute<ColumnAttribute>();
+                if (attribute == null || string.IsNullOrEmpty(attribute.Name))
+                    return column;
+
+                return attribute.Name;
+            });
+            return column.ParamSql(dbType);
+        }
+
+        /// <summary>
+        /// 获取添加左右标记 防止有关键字作为字段名/表名
+        /// </summary>
+        /// <param name="columnOrTable"></param>
+        /// <param name="dbType"></param>
+        /// <returns></returns>
+        public static string ParamSql(this string columnOrTable, DatabaseType? dbType)
         {
             switch (dbType)
             {
                 case DatabaseType.SqlServer:
                 case DatabaseType.GteSqlServer2012:
-                    if (columnOrTableName.StartsWith("["))
-                        return columnOrTableName;
-                    return $"[{columnOrTableName}]";
+                    if (columnOrTable.StartsWith("["))
+                        return columnOrTable;
+                    return $"[{columnOrTable}]";
                 case DatabaseType.MySql:
-                    if (columnOrTableName.StartsWith("`"))
-                        return columnOrTableName;
-                    return $"`{columnOrTableName}`";
+                    if (columnOrTable.StartsWith("`"))
+                        return columnOrTable;
+                    return $"`{columnOrTable}`";
                 case DatabaseType.SQLite:
-                    if (columnOrTableName.StartsWith("`"))
-                        return columnOrTableName;
-                    return $"`{columnOrTableName}`";
+                    if (columnOrTable.StartsWith("`"))
+                        return columnOrTable;
+                    return $"`{columnOrTable}`";
                 default:
-                    return columnOrTableName;
+                    return columnOrTable;
             }
         }
 

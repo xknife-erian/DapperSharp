@@ -33,6 +33,7 @@ namespace Overt.Core.Data.Expressions
                 tableName = typeof(T).Name;
 
             sqlGenerate.DatabaseType = dbType;
+            sqlGenerate.EntityType = typeof(T);
             sqlGenerate.TableName = tableName.ParamSql(dbType);
         }
 
@@ -41,7 +42,7 @@ namespace Overt.Core.Data.Expressions
         /// </summary>
         public void Clear()
         {
-            this.sqlGenerate.Clear();
+            sqlGenerate.Clear();
         }
 
         /// <summary>

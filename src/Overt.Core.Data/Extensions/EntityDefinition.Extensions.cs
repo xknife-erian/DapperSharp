@@ -49,7 +49,7 @@ namespace Overt.Core.Data
         /// <returns></returns>
         internal static PropertyInfo GetProperty<TAttribute>(this Type entity) where TAttribute : Attribute
         {
-            var propertyInfos = _cacheSubmeter.GetOrAdd($"{entity.Name}_{typeof(TAttribute).Name}",
+            var propertyInfos = _cacheSubmeter.GetOrAdd($"{entity.FullName}.{typeof(TAttribute).Name}",
                 key => entity.GetPropertyByAttribute<TAttribute>());
             return propertyInfos.FirstOrDefault();
         }
@@ -62,7 +62,7 @@ namespace Overt.Core.Data
         /// <returns></returns>
         internal static List<PropertyInfo> GetProperties<TAttribute>(this Type entity) where TAttribute : Attribute
         {
-            var propertyInfos = _cacheSubmeter.GetOrAdd($"{entity.Name}_{typeof(TAttribute).Name}",
+            var propertyInfos = _cacheSubmeter.GetOrAdd($"{entity.FullName}.{typeof(TAttribute).Name}",
                 key => entity.GetPropertyByAttribute<TAttribute>());
             return propertyInfos;
         }

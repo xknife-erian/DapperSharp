@@ -16,6 +16,8 @@ namespace Overt.User.Domain.Entities
         public string Password { get; set; }
         public DateTime AddTime { get; set; }
         public bool IsSex { get; set; }
+        [Column("other_info")]
+        public string OtherInfo { get; set; }
     }
 
 }

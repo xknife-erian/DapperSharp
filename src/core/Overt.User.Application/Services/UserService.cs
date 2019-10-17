@@ -31,7 +31,8 @@ namespace Overt.User.Application.Services
                     {
                         AddTime = DateTime.Now,
                         IsSex = false,
-                        UserName = "20190109154925"
+                        UserName = "20190109154925",
+                        OtherInfo = "abc"
                     };
                     var addRes = _userRepository.Add(entity, true);
                 }

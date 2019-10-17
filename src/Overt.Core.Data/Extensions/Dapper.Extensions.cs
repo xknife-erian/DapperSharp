@@ -127,7 +127,8 @@ namespace Overt.Core.Data
         public static async Task<bool> IsExistTableAsync(this IDbConnection connection, string tableName, Action<string> outSqlAction = null)
         {
             if (string.IsNullOrEmpty(tableName))
-                return false;
+                throw new Exception($"未提供表名");
+
             var dbType = connection.GetDbType();
             var dbName = connection.Database;
             var sql = dbType.ExistTableSql(dbName, tableName);
@@ -147,7 +148,8 @@ namespace Overt.Core.Data
         public static async Task<bool> IsExistFieldAsync(this IDbConnection connection, string tableName, string fieldName, Action<string> outSqlAction = null)
         {
             if (string.IsNullOrEmpty(tableName))
-                return false;
+                throw new Exception($"未提供表名");
+
             var dbType = connection.GetDbType();
             var dbName = connection.Database;
             var sql = dbType.ExistFieldSql(dbName, tableName, fieldName);
@@ -177,9 +179,9 @@ namespace Overt.Core.Data
             where TEntity : class, new()
         {
             if (string.IsNullOrEmpty(tableName))
-                return -1;
+                throw new Exception($"未提供表名");
             if (entity == null)
-                return -1;
+                throw new ArgumentNullException($"{nameof(entity)}");
 
             var addFields = new List<string>();
             var atFields = new List<string>();
@@ -192,13 +194,12 @@ namespace Overt.Core.Data
                 if (identityPropertyInfo?.Name == pi.Name)
                     continue;
 
-                addFields.Add($"{pi.Name.ParamSql(dbType)}");
+                addFields.Add($"{pi.Name.ParamSql<TEntity>(dbType)}");
                 atFields.Add($"@{pi.Name}");
             }
 
-            var sql = $"insert into {tableName.ParamSql(dbType)}({string.Join(", ", addFields)}) values({string.Join(", ", atFields)});";
-
             var task = 0;
+            var sql = $"insert into {tableName.ParamSql(dbType)}({string.Join(", ", addFields)}) values({string.Join(", ", atFields)});";
             if (identityPropertyInfo != null && returnLastIdentity)
             {
                 sql += dbType.SelectLastIdentity();
@@ -235,9 +236,9 @@ namespace Overt.Core.Data
             where TEntity : class, new()
         {
             if (string.IsNullOrEmpty(tableName))
-                return -1;
+                throw new Exception($"未提供表名");
             if (whereExpress == null)
-                return -1;
+                throw new Exception($"删除方法条件必须提供");
 
             var dbType = connection.GetDbType();
             var sqlExpression = SqlExpression.Delete<TEntity>(dbType, tableName).Where(whereExpress);
@@ -268,9 +269,9 @@ namespace Overt.Core.Data
             where TEntity : class, new()
         {
             if (string.IsNullOrEmpty(tableName))
-                return false;
+                throw new Exception($"未提供表名");
             if (entity == null)
-                return false;
+                throw new ArgumentNullException($"{nameof(entity)}");
 
             var setFields = new List<string>();
             var whereFields = new List<string>();
@@ -279,14 +280,17 @@ namespace Overt.Core.Data
             var pis = typeof(TEntity).GetProperties();
             foreach (var pi in pis)
             {
-                var obs = pi.GetCustomAttributes(typeof(KeyAttribute), false);
-                if (obs?.Count() > 0)
-                    whereFields.Add($"{pi.Name.ParamSql(dbType)} = @{pi.Name}");
-                else
+                var column = pi.Name.ParamSql<TEntity>(dbType);
+                var attribute = pi.GetAttribute<KeyAttribute>();
+                // 主键
+                if (attribute != null)
                 {
-                    if ((fields?.Count() ?? 0) <= 0 || fields.Contains(pi.Name))
-                        setFields.Add($"{pi.Name.ParamSql(dbType)} = @{pi.Name}");
+                    whereFields.Add($"{column} = @{pi.Name}");
+                    continue;
                 }
+
+                if ((fields?.Count() ?? 0) <= 0 || fields.Contains(pi.Name))
+                    setFields.Add($"{column} = @{pi.Name}");
             }
             if (whereFields.Count <= 0)
                 throw new Exception($"实体[{nameof(TEntity)}]未设置主键Key属性");
@@ -321,9 +325,11 @@ namespace Overt.Core.Data
             where TEntity : class, new()
         {
             if (string.IsNullOrEmpty(tableName))
-                return false;
-            if (setExpress == null || whereExpress == null)
-                return false;
+                throw new Exception($"未提供表名");
+            if (setExpress == null)
+                throw new Exception($"未提供修改字段");
+            if (whereExpress == null)
+                throw new Exception($"条件必须提供");
 
             var dbType = connection.GetDbType();
             var sqlExpression = SqlExpression.Update<TEntity>(dbType, setExpress, tableName).Where(whereExpress);
@@ -347,16 +353,14 @@ namespace Overt.Core.Data
         public static async Task<TEntity> GetAsync<TEntity>(this
             IDbConnection connection,
             string tableName,
-            Expression<Func<TEntity, bool>> whereExpress,
+            Expression<Func<TEntity, bool>> whereExpress = null,
             Expression<Func<TEntity, object>> fieldExpress = null,
             IDbTransaction transaction = null,
             Action<string> outSqlAction = null)
             where TEntity : class, new()
         {
             if (string.IsNullOrEmpty(tableName))
-                return default(TEntity);
-            if (whereExpress == null)
-                return default(TEntity);
+                throw new Exception($"未提供表名");
 
             var dbType = connection.GetDbType();
             var sqlExpression = SqlExpression.Select(dbType, fieldExpress, tableName).Where(whereExpress);
@@ -393,7 +397,7 @@ namespace Overt.Core.Data
             where TEntity : class, new()
         {
             if (string.IsNullOrEmpty(tableName))
-                return default(IEnumerable<TEntity>);
+                throw new Exception($"未提供表名");
 
             var dbType = connection.GetDbType();
             var sqlExpression = SqlExpression.Select(dbType, fieldExpress, tableName);
@@ -402,7 +406,7 @@ namespace Overt.Core.Data
 
             var orderBy = string.Empty;
             if ((orderByFields?.Count ?? 0) > 0)
-                orderBy = $" {string.Join(", ", orderByFields.Select(oo => oo.Field.ParamSql(dbType) + " " + oo.OrderBy))}";
+                orderBy = $" {string.Join(", ", orderByFields.Select(oo => oo.Field.ParamSql<TEntity>(dbType) + " " + oo.OrderBy))}";
             sqlExpression.OrderBy(orderBy).Limit(page, rows);
 
             var task = await connection.QueryAsync<TEntity>(sqlExpression.Script, sqlExpression.DbParams, transaction);
@@ -438,7 +442,7 @@ namespace Overt.Core.Data
             where TEntity : class, new()
         {
             if (string.IsNullOrEmpty(tableName))
-                return default(IEnumerable<TEntity>);
+                throw new Exception($"未提供表名");
 
             var dbType = connection.GetDbType();
             var sqlExpression = SqlExpression.Select(dbType, fieldExpress, tableName);
@@ -447,7 +451,7 @@ namespace Overt.Core.Data
 
             var orderBy = string.Empty;
             if ((orderByFields?.Count ?? 0) > 0)
-                orderBy = $" {string.Join(", ", orderByFields.Select(oo => oo.Field.ParamSql(dbType) + " " + oo.OrderBy))}";
+                orderBy = $" {string.Join(", ", orderByFields.Select(oo => oo.Field.ParamSql<TEntity>(dbType) + " " + oo.OrderBy))}";
             sqlExpression.OrderBy(orderBy).Offset(offset, size);
 
             var task = await connection.QueryAsync<TEntity>(sqlExpression.Script, sqlExpression.DbParams, transaction);
@@ -475,7 +479,7 @@ namespace Overt.Core.Data
             where TEntity : class, new()
         {
             if (string.IsNullOrEmpty(tableName))
-                return 0;
+                throw new Exception($"未提供表名");
 
             var dbType = connection.GetDbType();
             var sqlExpression = SqlExpression.Count<TEntity>(dbType, tableName: tableName).Where(whereExpress);
