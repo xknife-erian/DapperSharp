@@ -21,7 +21,7 @@ namespace Overt.User.Application.Services
             return null;
         }
 
-        public bool DoSomethingWithTrans()
+        public bool AddAsync()
         {
             using (var transaction = _userRepository.BeginTransaction())
             {
@@ -63,7 +63,7 @@ namespace Overt.User.Application.Services
             {
                 ids.Add(i + 1);
             }
-            var list = _userRepository.GetList(1, int.MaxValue, oo => ids.Contains(oo.UserId));
+            var list = _userRepository.GetList(1, int.MaxValue, oo => new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 }.Contains(oo.UserId));
             return list.ToList();
         }
     }

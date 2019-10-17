@@ -52,23 +52,7 @@ namespace Overt.Core.Data.Expressions
         {
            var result = SqlExpressionCompiler.Evaluate(expression);
             var inArgs = (result as IEnumerable).Flatten();
-
-            sqlGenerate += "(";
-            if (inArgs?.Count > 0)
-            {
-                foreach (var item in inArgs)
-                {
-                    sqlGenerate.AddDbParameter(item);
-                    sqlGenerate += ",";
-                }
-                if (sqlGenerate.Sql.ToString().EndsWith(","))
-                    sqlGenerate.Sql.Remove(sqlGenerate.Sql.Length - 1, 1);
-            }
-            else
-            {
-                sqlGenerate += "NULL";
-            }
-            sqlGenerate += ")";
+            sqlGenerate.AddDbParameter(inArgs);
             return sqlGenerate;
         }
 

@@ -8,10 +8,10 @@ namespace Overt.User.Application.Constracts
     public interface IUserService
     {
         UserEntity DoSomething();
+        bool AddAsync();
 
         List<UserEntity> GetList();
 
-        bool DoSomethingWithTrans();
 
         List<UserEntity> GetByIds();
     }

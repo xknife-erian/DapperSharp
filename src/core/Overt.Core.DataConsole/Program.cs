@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using Overt.User.Application;
 using Overt.User.Application.Constracts;
+using System;
 
 namespace Overt.Core.DataConsole
 {
@@ -27,12 +27,11 @@ namespace Overt.Core.DataConsole
         static void Main(string[] args)
         {
             var _userService = provider.GetService<IUserService>();
-            _userService.DoSomethingWithTrans();
 
-            _userService.GetList();
+            //_userService.AddAsync();
             _userService.GetByIds();
 
-            //_userService.DoSomething();
+            _userService.GetList();
         }
     }
 }

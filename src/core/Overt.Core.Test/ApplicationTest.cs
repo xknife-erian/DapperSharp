@@ -17,7 +17,7 @@ namespace Overt.Core.Test
         public void DoSomethingTest()
         {
             var _userService = provider.GetService<IUserService>();
-            _userService.DoSomethingWithTrans();
+            _userService.AddAsync();
 
             _userService.GetList();
 
@@ -54,7 +54,7 @@ namespace Overt.Core.Test
         public void DoSomeTest()
         {
             var _userService = provider.GetService<IUserService>();
-            _userService.DoSomethingWithTrans();
+            _userService.AddAsync();
         }
 
 
