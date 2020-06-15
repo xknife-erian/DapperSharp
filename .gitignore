@@ -34,3 +34,4 @@ log.txt
 /.vs
 /src/core/Overt.Core.DataConsole/appsettings.txt
 /src/net46/Overt.Core.DataConsole/App.txt
+.vs
