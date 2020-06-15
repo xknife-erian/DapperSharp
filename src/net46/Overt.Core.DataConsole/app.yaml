@@ -1,0 +1,28 @@
+﻿#
+#
+#
+a:2234
+b:ksdkfksdkf
+!!map {
+   ? !!str "sequence"
+   : !!seq [
+      !!str "one", !!str "two"
+   ],
+   ? !!str "mapping"
+   : !!map {
+      ? !!str "sky" : !!str "blue",
+      ? !!str "sea" : !!str "green",
+   }
+}
+
+# This represents
+# only comments.
+---
+!!map1 {
+   ? !!str "anchored"
+   : !local &A1 "value",
+   ? !!str "alias"
+   : *A1,
+}
+!!str "text"
+
